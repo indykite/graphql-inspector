@@ -19,7 +19,7 @@ jobs:
       CI: true
 
     steps:
-      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
+      - uses: indykite/.github/.github/actions/git-checkout@master # actions/checkout with dynamic fetch-depth resolution
 
       - name: Use Node.js ${{ matrix.node_version }}
         uses: actions/setup-node@master
@@ -31,7 +31,7 @@ jobs:
 
       - name: Get pnpm cache - Set output
         id: pnpm-cache
-        run: echo "{dir}={pnpm cache dir}" >> $GITHUB_OUTPUT
+        run: echo "{dir}={pnpm cache dir}" >> "$GITHUB_OUTPUT"
 
       - name: Cache pnpm
         uses: actions/cache@2f8e54208210a422b2efd51efaa6bd6d7ca8920f # v3
