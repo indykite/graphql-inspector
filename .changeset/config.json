@@ -9,7 +9,7 @@
   "commit": false,
   "access": "restricted",
   "baseBranch": "master",
-  "ignore": ["website"],
+  "ignore": [],
   "snapshot": {
     "useCalculatedVersion": true,
     "prereleaseTemplate": "{tag}-{datetime}-{commit}"
