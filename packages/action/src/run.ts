@@ -6,12 +6,12 @@ import { Rule } from '@graphql-inspector/core';
 import { diff } from '../helpers/diff.js';
 import { printSchemaFromEndpoint } from '../helpers/loaders.js';
 import { produceSchema } from '../helpers/schema.js';
-import { CheckConclusion } from '../helpers/types.js';
+import { AnnotationFilterLevel, AnnotationLevel, CheckConclusion } from '../helpers/types.js';
 import { createSummary } from '../helpers/utils.js';
 import { updateCheckRun } from './checks.js';
 import { fileLoader } from './files.js';
 import { getAssociatedPullRequest, getCurrentCommitSha } from './git.js';
-import { castToBoolean, getInputAsArray, resolveRule } from './utils.js';
+import { castToBoolean, getInputAsArray, isAnnotationFilterLevel, resolveRule } from './utils.js';
 
 const CHECK_NAME = 'GraphQL Inspector';
 
@@ -36,6 +36,14 @@ export async function run() {
 
   const useMerge = castToBoolean(core.getInput('experimental_merge'), true);
   const useAnnotations = castToBoolean(core.getInput('annotations'));
+  const annotationLevel = core.getInput('annotation-level') || AnnotationFilterLevel.All;
+
+  if (!isAnnotationFilterLevel(annotationLevel)) {
+    return core.setFailed(
+      `Invalid annotation-level. Expected one of: ${Object.values(AnnotationFilterLevel).join(', ')}.`,
+    );
+  }
+
   const failOnBreaking = castToBoolean(core.getInput('fail-on-breaking'));
   const endpoint: string = core.getInput('endpoint');
   const approveLabel: string = core.getInput('approve-label') || 'approved-breaking-change';
@@ -211,6 +219,12 @@ export async function run() {
   if (useAnnotations === false || isNewSchemaUrl) {
     core.info(`Anotations are disabled. Skipping annotations...`);
     annotations = [];
+  } else if (annotationLevel !== AnnotationFilterLevel.All) {
+    annotations = annotations.filter(annotation =>
+      annotationLevel === AnnotationFilterLevel.Breaking
+        ? annotation.annotation_level === AnnotationLevel.Failure
+        : annotation.annotation_level !== AnnotationLevel.Notice,
+    );
   }
 
   const summary = createSummary(changes, 100, false);
